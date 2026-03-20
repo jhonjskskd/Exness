@@ -1,0 +1,36 @@
+name: XAUUSD Bot
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # runs every 15 minutes
+  workflow_dispatch: # lets you run it manually too
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run bot
+        env:
+          TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SYMBOL: XAU/USD
+          PRIMARY_INTERVAL: 15min
+          CONFIRM_INTERVAL: 1h
+          OUTPUT_SIZE: 300
+          CHECK_EVERY_MINUTES: 15
+          MIN_SCORE: 8
+          COOLDOWN_MINUTES: 45
+        run: node bot.js
