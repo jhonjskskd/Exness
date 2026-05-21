@@ -57,4 +57,3 @@ def run_pipeline():
 # Required for local testing if running manually
 if __name__ == '__main__':
     app.run(debug=True)
-    
