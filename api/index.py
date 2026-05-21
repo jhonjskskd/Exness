@@ -1,5 +1,4 @@
-from http.server import BaseHTTPRequestHandler
-import json
+from flask import Flask, jsonify
 import sys
 import os
 
@@ -13,10 +12,15 @@ from 3_contact_scraper import ContactScraper
 from 4_copywriter_engine import CopywriterEngine
 from 5_telegram_dispatcher import TelegramDispatcher
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        """Triggers the full 5-script automated data pipeline."""
-        print("🚀 Vercel Request Received: Initiating Davies Partner Lead Engine...")
+# CRITICAL: This defines the top-level 'app' variable Vercel is demanding
+app = Flask(__name__)
+
+@app.route('/')
+@app.route('/api')
+def run_pipeline():
+    """Triggers the full 5-script automated data pipeline."""
+    try:
+        print("🚀 Vercel Webhook Triggered: Initiating Davies Partner Lead Engine...")
         
         # 1. Execute Udemy Metric Extractions
         collector = UdemyMetricCollector()
@@ -38,16 +42,19 @@ class handler(BaseHTTPRequestHandler):
         dispatcher = TelegramDispatcher()
         dispatcher.execute_dispatch_pipeline()
 
-        # Build a clean JSON confirmation payload response for your web browser screen
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        
-        response_payload = {
+        return jsonify({
             "status": "success",
             "engine": "Davies_Partner_Udemy_Engine_2026",
-            "message": "Pipeline executed. Check your Telegram app for active lead cards!"
-        }
-        
-        self.wfile.write(json.dumps(response_payload).encode('utf-8'))
+            "message": "Pipeline executed successfully! Check your Telegram app for active lead cards."
+        }), 200
 
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Pipeline execution failed: {str(e)}"
+        }), 500
+
+# Required for local testing if running manually
+if __name__ == '__main__':
+    app.run(debug=True)
+    
